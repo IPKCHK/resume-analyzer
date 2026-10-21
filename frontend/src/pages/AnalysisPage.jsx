@@ -28,7 +28,7 @@ function AnalysisPage() {
 
         try {
             const response = await fetch(
-                "${import.meta.env.VITE_API_URL}/api/analysis",
+                `${import.meta.env.VITE_API_URL}/api/analysis`,
                 {
                     method: "POST",
                     headers: {
