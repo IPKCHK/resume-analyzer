@@ -21,7 +21,7 @@ function Dashboard() {
 
             try {
                 const response = await fetch(
-                    "http://localhost:3000/api/analysis",
+                    "${import.meta.env.VITE_API_URL}/api/analysis",
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
