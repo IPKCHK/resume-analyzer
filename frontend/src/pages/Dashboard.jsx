@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
+import { useAuthStore } from "../store/authStore";
 
 function Dashboard() {
     const navigate = useNavigate();
 
     const [analyses, setAnalyses] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // New state to hold the analysis the user wants to view
+    const [selectedAnalysis, setSelectedAnalysis] = useState(null);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const { user, token } = useAuthStore();
 
     useEffect(() => {
         const fetchAnalyses = async () => {
-            const token = localStorage.getItem("token");
 
             if (!token) {
                 setLoading(false);
@@ -45,27 +48,95 @@ function Dashboard() {
         fetchAnalyses();
     }, []);
 
+    // IF A USER CLICKS A CARD, SHOW THE FULL ANALYSIS VIEW
+    if (selectedAnalysis) {
+        const result = selectedAnalysis.result;
+        return (
+            <div className="dashboard-page">
+                <button 
+                    className="back-btn"
+                    onClick={() => setSelectedAnalysis(null)} 
+                >
+                    &larr; Back to Dashboard
+                </button>
+
+                <section className="analysis-results">
+                    <h2>Past Analysis Results</h2>
+
+                    <div className="match-card">
+                        <span>Resume Match</span>
+                        <strong>{result.matchPercentage || 0}%</strong>
+                    </div>
+
+                    <div className="result-grid">
+                        <div className="result-card">
+                            <h3>Matching Skills</h3>
+                            <ul>
+                                {result.matchingSkills?.map((skill, index) => (
+                                    <li key={index}>{skill}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="result-card">
+                            <h3>Missing Skills</h3>
+                            <ul>
+                                {result.missingSkills?.map((skill, index) => (
+                                    <li key={index}>{skill}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="result-card">
+                            <h3>Keywords</h3>
+                            <ul>
+                                {result.keywords?.map((keyword, index) => (
+                                    <li key={index}>{keyword}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="result-card">
+                            <h3>Suggestions</h3>
+                            <ul>
+                                {result.suggestions?.map((suggestion, index) => (
+                                    <li key={index}>{suggestion}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="interview-card">
+                        <h3>Interview Questions</h3>
+                        <ol>
+                            {result.interviewQuestions?.map((question, index) => (
+                                <li key={index}>{question}</li>
+                            ))}
+                        </ol>
+                    </div>
+                </section>
+            </div>
+        );
+    }
+
+    // OTHERWISE, SHOW THE NORMAL DASHBOARD
     return (
         <div className="dashboard-page">
 
             {/* Hero Section */}
             <section className="dashboard-hero">
-
                 <div className="hero-content">
                     <p className="hero-label">
                         AI-POWERED CAREER TOOL
                     </p>
-
                     <h1>
                         Welcome back, {user?.name || "User"}!
                     </h1>
-
                     <p>
                         Analyze your resume against job descriptions,
                         discover skill gaps, and improve your chances
                         of getting shortlisted.
                     </p>
-
                     <button
                         className="analyze-btn"
                         onClick={() => navigate("/analysis")}
@@ -73,38 +144,22 @@ function Dashboard() {
                         Analyze Resume
                     </button>
                 </div>
-
             </section>
 
 
             {/* Statistics */}
             <section className="dashboard-stats">
-
                 <div className="stat-card">
-                    <span className="stat-title">
-                        Total Analyses
-                    </span>
-
-                    <span className="stat-number">
-                        {analyses.length}
-                    </span>
+                    <span className="stat-title">Total Analyses</span>
+                    <span className="stat-number">{analyses.length}</span>
                 </div>
 
                 <div className="stat-card">
-                    <span className="stat-title">
-                        Average Match
-                    </span>
-
+                    <span className="stat-title">Average Match</span>
                     <span className="stat-number">
                         {analyses.length > 0
                             ? Math.round(
-                                analyses.reduce(
-                                    (sum, item) =>
-                                        sum + Number(
-                                            item.result?.matchPercentage || 0
-                                        ),
-                                    0
-                                ) / analyses.length
+                                analyses.reduce((sum, item) => sum + Number(item.result?.matchPercentage || 0), 0) / analyses.length
                             )
                             : 0
                         }%
@@ -112,32 +167,21 @@ function Dashboard() {
                 </div>
 
                 <div className="stat-card">
-                    <span className="stat-title">
-                        Latest Analysis
-                    </span>
-
+                    <span className="stat-title">Latest Analysis</span>
                     <span className="stat-number">
-                        {analyses.length > 0
-                            ? `${analyses[0].result?.matchPercentage || 0}%`
-                            : "--"
-                        }
+                        {analyses.length > 0 ? `${analyses[0].result?.matchPercentage || 0}%` : "--"}
                     </span>
                 </div>
-
             </section>
 
 
             {/* Recent Analyses */}
             <section className="recent-section">
-
                 <div className="section-header">
                     <div>
                         <h2>Recent Analyses</h2>
-                        <p>
-                            Your latest resume and job description comparisons
-                        </p>
+                        <p>Your latest resume and job description comparisons</p>
                     </div>
-
                     <button
                         className="view-all-btn"
                         onClick={() => navigate("/analysis")}
@@ -146,127 +190,85 @@ function Dashboard() {
                     </button>
                 </div>
 
-
                 {loading ? (
                     <div className="empty-message">
                         Loading analyses...
                     </div>
                 ) : analyses.length === 0 ? (
-
                     <div className="empty-card">
                         <h3>No analyses yet</h3>
-
                         <p>
                             Upload your resume and compare it with a job
                             description to get your first AI analysis.
                         </p>
-
-                        <button
-                            onClick={() => navigate("/analysis")}
-                        >
+                        <button onClick={() => navigate("/analysis")}>
                             Start Your First Analysis
                         </button>
                     </div>
-
                 ) : (
-
                     <div className="analysis-list">
-
                         {analyses.slice(0, 5).map((analysis) => (
-
                             <div
                                 className="analysis-card"
                                 key={analysis.id}
+                                onClick={() => setSelectedAnalysis(analysis)} // Click to view full details
+                                style={{ cursor: "pointer" }} // Show pointer to indicate it's clickable
+                                title="Click to view full analysis"
                             >
-
                                 <div className="analysis-info">
-
-                                    <h3>
-                                        Resume Analysis
-                                    </h3>
-
+                                    <h3>Resume Analysis</h3>
                                     <p>
-                                        {analysis.job_description
-                                            .slice(0, 100)}
-                                        ...
+                                        {analysis.job_description.slice(0, 100)}...
                                     </p>
-
                                     <span>
-                                        {new Date(
-                                            analysis.created_at
-                                        ).toLocaleDateString()}
+                                        {new Date(analysis.created_at).toLocaleDateString()}
                                     </span>
-
                                 </div>
 
-
                                 <div className="match-score">
-
                                     <strong>
                                         {analysis.result?.matchPercentage || 0}%
                                     </strong>
-
-                                    <span>
-                                        Match
-                                    </span>
-
+                                    <span>Match</span>
                                 </div>
-
                             </div>
-
                         ))}
-
                     </div>
-
                 )}
-
             </section>
 
 
             {/* How It Works */}
             <section className="how-section">
-
                 <h2>How It Works</h2>
-
                 <div className="steps">
-
                     <div className="step-card">
                         <span className="step-number">01</span>
-
                         <h3>Upload Resume</h3>
-
                         <p>
                             Provide your resume text and let the AI
                             understand your skills and experience.
                         </p>
                     </div>
 
-
                     <div className="step-card">
                         <span className="step-number">02</span>
-
                         <h3>Add Job Description</h3>
-
                         <p>
                             Enter the job description you want to
                             compare your resume against.
                         </p>
                     </div>
 
-
                     <div className="step-card">
                         <span className="step-number">03</span>
-
                         <h3>Get AI Insights</h3>
-
                         <p>
                             See your match percentage, missing skills,
                             keywords, suggestions, and interview questions.
                         </p>
                     </div>
-
                 </div>
-
             </section>
 
         </div>

@@ -6,11 +6,13 @@ function SignupPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // Added loading state
 
     const navigate = useNavigate();
 
     const handleSignup = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading
 
         try {
             const response = await fetch(
@@ -42,6 +44,8 @@ function SignupPage() {
         } catch (error) {
             console.log("Signup error:", error);
             alert("Something went wrong");
+        } finally {
+            setLoading(false); // Stop loading when done
         }
     };
 
@@ -59,7 +63,6 @@ function SignupPage() {
 
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
-
                         <input
                             id="name"
                             type="text"
@@ -72,7 +75,6 @@ function SignupPage() {
 
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
-
                         <input
                             id="email"
                             type="email"
@@ -85,7 +87,6 @@ function SignupPage() {
 
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-
                         <input
                             id="password"
                             type="password"
@@ -99,8 +100,9 @@ function SignupPage() {
                     <button
                         type="submit"
                         className="signup-submit"
+                        disabled={loading} // Disable while processing
                     >
-                        Create Account
+                        {loading ? "Creating Account..." : "Create Account"} {/* Dynamic text */}
                     </button>
 
                 </form>

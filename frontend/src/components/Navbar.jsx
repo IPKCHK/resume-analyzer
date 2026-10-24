@@ -1,26 +1,101 @@
+// import { useNavigate } from "react-router-dom";
+// import "./Navbar.css";
+
+// function Navbar() {
+
+//     const navigate = useNavigate();
+
+//     const token = localStorage.getItem("token");
+
+//     const storedUser = localStorage.getItem("user");
+
+//     const user = storedUser ? JSON.parse(storedUser) : null;
+
+//     const handleLogout = () => {
+//         localStorage.removeItem("token");
+//         localStorage.removeItem("user");
+
+//         navigate("/login");
+//     };
+
+//     return (
+//         <nav className="navbar">
+
+//             <div
+//                 className="navbar-logo"
+//                 onClick={() => navigate("/")}
+//             >
+//                 AI Resume <span>Analyzer</span>
+//             </div>
+
+//             {token ? (
+//                 <div className="navbar-right">
+
+//                     <span className="navbar-user">
+//                         Hello, {user?.name}
+//                     </span>
+
+//                     <button
+//                         className="navbar-btn primary"
+//                         onClick={() => navigate("/analysis")}
+//                     >
+//                         Analyze Resume
+//                     </button>
+
+//                     <button
+//                         className="navbar-btn logout"
+//                         onClick={handleLogout}
+//                     >
+//                         Logout
+//                     </button>
+
+//                 </div>
+//             ) : (
+//                 <div className="navbar-right">
+
+//                     <button
+//                         className="navbar-btn secondary"
+//                         onClick={() => navigate("/login")}
+//                     >
+//                         Login
+//                     </button>
+
+//                     <button
+//                         className="navbar-btn primary"
+//                         onClick={() => navigate("/signup")}
+//                     >
+//                         Sign Up
+//                     </button>
+
+//                 </div>
+//             )}
+
+//         </nav>
+//     );
+// }
+
+// export default Navbar;
+
+
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import { useAuthStore } from "../store/authStore"; // Import your store
 
 function Navbar() {
-
     const navigate = useNavigate();
 
-    const token = localStorage.getItem("token");
-
-    const storedUser = localStorage.getItem("user");
-
-    const user = storedUser ? JSON.parse(storedUser) : null;
+    // Grab token, user, and the logout function directly from Zustand
+    const { token, user, logout } = useAuthStore();
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
+        // This single function clears the Zustand state AND removes it from localStorage automatically
+        logout(); 
+        
         navigate("/login");
     };
 
     return (
         <nav className="navbar">
-
             <div
                 className="navbar-logo"
                 onClick={() => navigate("/")}
@@ -30,7 +105,6 @@ function Navbar() {
 
             {token ? (
                 <div className="navbar-right">
-
                     <span className="navbar-user">
                         Hello, {user?.name}
                     </span>
@@ -48,11 +122,9 @@ function Navbar() {
                     >
                         Logout
                     </button>
-
                 </div>
             ) : (
                 <div className="navbar-right">
-
                     <button
                         className="navbar-btn secondary"
                         onClick={() => navigate("/login")}
@@ -66,10 +138,8 @@ function Navbar() {
                     >
                         Sign Up
                     </button>
-
                 </div>
             )}
-
         </nav>
     );
 }

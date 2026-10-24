@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 import "./LoginPage.css";
 
 function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // Added loading state
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true); // Start loading
 
         try {
             const response = await fetch(
@@ -33,35 +37,31 @@ function LoginPage() {
                 return;
             }
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            setAuth(data.token, data.user);
 
             navigate("/");
 
         } catch (error) {
             console.log("Login error:", error);
             alert("Something went wrong");
+        } finally {
+            setLoading(false); // Stop loading regardless of success or failure
         }
     };
 
     return (
         <div className="login-page">
-
             <div className="login-card">
-
                 <h1>Welcome Back</h1>
-
                 <p className="login-subtitle">
                     Login to continue to AI Resume Analyzer
                 </p>
 
                 <form onSubmit={handleLogin}>
-
                     <div className="form-group">
                         <label htmlFor="email">
                             Email
                         </label>
-
                         <input
                             id="email"
                             type="email"
@@ -76,7 +76,6 @@ function LoginPage() {
                         <label htmlFor="password">
                             Password
                         </label>
-
                         <input
                             id="password"
                             type="password"
@@ -90,10 +89,10 @@ function LoginPage() {
                     <button
                         type="submit"
                         className="login-submit"
+                        disabled={loading} // Disable button while loading
                     >
-                        Login
+                        {loading ? "Logging in..." : "Login"} {/* Dynamic text */}
                     </button>
-
                 </form>
 
                 <p className="signup-text">
@@ -102,9 +101,7 @@ function LoginPage() {
                         Sign up
                     </span>
                 </p>
-
             </div>
-
         </div>
     );
 }
